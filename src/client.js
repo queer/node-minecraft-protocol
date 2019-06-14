@@ -166,13 +166,14 @@ class Client extends EventEmitter {
     if (this.socket) this.socket.end()
   }
 
-  setEncryption (sharedSecret) {
+  setEncryption (sharedSecret, options) {
+    // NOPR: Allow reusing an old IV
     if (this.cipher != null) { this.emit('error', new Error('Set encryption twice!')) }
-    this.cipher = crypto.createCipheriv('aes-128-cfb8', sharedSecret, sharedSecret)
+    this.cipher = crypto.createCipheriv('aes-128-cfb8', sharedSecret, options && options.iv ? options.iv : sharedSecret)
     this.cipher.on('error', (err) => this.emit('error', err))
     this.framer.unpipe(this.socket)
     this.framer.pipe(this.cipher).pipe(this.socket)
-    this.decipher = crypto.createDecipheriv('aes-128-cfb8', sharedSecret, sharedSecret)
+    this.decipher = crypto.createDecipheriv('aes-128-cfb8', sharedSecret, options && options.iv ? options.iv : sharedSecret)
     this.decipher.on('error', (err) => this.emit('error', err))
     this.socket.unpipe(this.splitter)
     this.socket.pipe(this.decipher).pipe(this.splitter)

@@ -11,6 +11,8 @@ module.exports = function (client, options) {
     crypto.randomBytes(16, gotSharedSecret)
 
     function gotSharedSecret (err, sharedSecret) {
+      // NOPR: Allow passing in a brand-new shared secret
+      sharedSecret = options.sharedSecret || sharedSecret
       if (err) {
         debug(err)
         client.emit('error', err)
